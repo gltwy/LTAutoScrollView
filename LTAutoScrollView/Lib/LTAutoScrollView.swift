@@ -73,8 +73,9 @@ fileprivate class LTCollectionViewCell: UICollectionViewCell {
     }
 
     
-    lazy var imageView: UIImageView = {
+    fileprivate lazy var imageView: UIImageView = {
         let imageView = UIImageView(frame: CGRect(x: 0, y: 0, width: bounds.width, height: bounds.height))
+        imageView.isUserInteractionEnabled = true
         return imageView
     }()
     
@@ -109,6 +110,9 @@ public class LTAutoScrollView: UIView {
     
     /* -------------  共有方法  ---------------- */
     public typealias AutoViewHandle = () -> [UIView]
+    public typealias SetImageHandle = (UIImageView, String) -> Void
+    
+    var imageHandle: SetImageHandle?
     
     /*如果是默认模式`default`  直接传入images数组即可*/
     public var images: [String]? {
@@ -125,12 +129,23 @@ public class LTAutoScrollView: UIView {
     }
     
     /* 判断轮播类型是自定义视图custom 还是默认模式`default` */
-    public var autoType: LTAutoScrollViewType = .default
+    public var autoType: LTAutoScrollViewType = .default {
+        didSet {
+            
+        }
+    }
     
     /* 设置轮播图的方向 */
     public var scrollDirection: UICollectionViewScrollDirection = .horizontal {
         didSet {
             layout.scrollDirection = scrollDirection
+        }
+    }
+    
+    /* 设置pageControl的属性 */
+    public var dotLayout: LTDotLayout = LTDotLayout() {
+        didSet {
+            gltPageControl.dotLayout = dotLayout
         }
     }
     
@@ -161,6 +176,11 @@ public class LTAutoScrollView: UIView {
         return layout
     }()
     
+    private lazy var gltPageControl: LTPageControlView = {
+        let gltPageControl = LTPageControlView(frame: CGRect(x: 0, y: bounds.size.height - 20, width: bounds.size.width, height: 20))
+        return gltPageControl
+    }()
+    
     private lazy var collectionView: LTCollectionView = {
         let collectionView = LTCollectionView(frame: bounds, collectionViewLayout: layout, delegate: self, dataSource: self)
         return collectionView
@@ -181,28 +201,35 @@ extension LTAutoScrollView {
     
     private func setupImages(_ images: [String]?)  {
         guard let images = images else { return }
+        if autoType == .custom { return }
+        images.count == 1 ? destroyTimrer() : setupTimer()
         totalsCount = images.count * 1024
+        collectionView.reloadData()
         if scrollDirection == .vertical {
             collectionView.scrollToItem(item: totalsCount / 2, section: 0, at: .top)
         }else {
             collectionView.scrollToItem(item: totalsCount / 2, section: 0, at: .left)
         }
         pageControl.numberOfPages = images.count
-        collectionView.reloadData()
+        gltPageControl.numberOfPages = images.count
+        gltPageControl.currentDot = 0
     }
     
     private func setupAutoViewHandle(autoViewHandle: AutoViewHandle?) {
         guard let autoViewHandle = autoViewHandle else { return }
+        if autoType == .default { return }
         contentViews.removeAll()
         contentViews = autoViewHandle()
+        contentViews.count == 1 ? destroyTimrer() : setupTimer()
         totalsCount = contentViews.count * 1024
+        collectionView.reloadData()
         if scrollDirection == .vertical {
             collectionView.scrollToItem(item: totalsCount / 2, section: 0, at: .top)
         }else {
             collectionView.scrollToItem(item: totalsCount / 2, section: 0, at: .left)
         }
         pageControl.numberOfPages = contentViews.count
-        collectionView.reloadData()
+        gltPageControl.numberOfPages = contentViews.count
     }
 }
 
@@ -210,7 +237,8 @@ extension LTAutoScrollView {
     private func setupSubViews() {
         LTCollectionViewCell.registerCellWithCollectionView(collectionView)
         addSubview(collectionView)
-        addSubview(pageControl)
+//        addSubview(pageControl)
+        addSubview(gltPageControl)
         registerNotification()
         setupTimer()
     }
@@ -232,10 +260,14 @@ extension LTAutoScrollView {
 
 extension LTAutoScrollView {
     private func setupTimer() {
-        timer?.invalidate()
-        timer = nil
+        destroyTimrer()
         timer = Timer(timeInterval: glt_timeInterval, target: self, selector: #selector(timerUpdate(_:)), userInfo: nil, repeats: true)
         RunLoop.current.add(timer!, forMode: .defaultRunLoopMode)
+    }
+    
+    private func destroyTimrer() {
+        timer?.invalidate()
+        timer = nil
     }
     
     @objc func timerUpdate(_ timer: Timer)  {
@@ -261,39 +293,55 @@ extension Timer {
 extension LTAutoScrollView: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     
     public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        if autoType == .default {
-            return totalsCount
-        }else {
-            return totalsCount
-        }
+        return totalsCount
     }
     
     public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = LTCollectionViewCell.itemViewWithCollectionView(collectionView, indexPath)
         if autoType == .default {
             guard let images = images else { return cell }
-            cell.image = images[indexPath.item % (images.count)]
+            imageHandle?(cell.imageView, images[indexPath.item % (images.count)])
         }else {
             cell.subView = contentViews[indexPath.item % contentViews.count]
         }
         return cell
     }
     
+    public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        print(realItemIndex(currentIndex()))
+    }
+    
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        var scrllW = bounds.size.width
-        var offsetX = scrollView.contentOffset.x
-        if scrollDirection == .vertical {
-            scrllW = bounds.size.height
-            offsetX = scrollView.contentOffset.y
+        let index = currentIndex()
+        if currentPageIndex != index {
+            let realIndex = realItemIndex(index)
+            pageControl.currentPage = realIndex
+            gltPageControl.currentDot = realIndex
+            print(realIndex)
         }
-        let abs = offsetX.truncatingRemainder(dividingBy: scrllW)
-        if abs == 0 {
-            let totalCurrentIndex = Int(offsetX) / Int(scrllW)
-            currentPageIndex = totalCurrentIndex
-            let contentCount = (autoType == .default ? (images?.count ?? 1) : contentViews.count)
-            let index = totalCurrentIndex % contentCount
-            pageControl.currentPage = index
+        currentPageIndex = index
+    }
+    
+    public func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+        print("scrollViewDidEndScrollingAnimation -> ", realItemIndex(currentIndex()))
+    }
+    
+    private func realItemIndex(_ targetIndex: Int) -> Int {
+        let contentCount = (autoType == .default ? (images?.count ?? 1) : contentViews.count)
+        return targetIndex % contentCount
+    }
+    
+    private func currentIndex() -> Int {
+        if collectionView.frame.width == 0 || collectionView.frame.height == 0 {
+            return 0
         }
+        var index = 0
+        if scrollDirection == .horizontal {
+            index = Int((collectionView.contentOffset.x + layout.itemSize.width * 0.5) / layout.itemSize.width)
+        } else {
+            index = Int((collectionView.contentOffset.y + layout.itemSize.height * 0.5) / layout.itemSize.height)
+        }
+        return max(0, index)
     }
     
     public func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
@@ -310,5 +358,143 @@ extension LTAutoScrollView: UICollectionViewDelegate, UICollectionViewDataSource
     
 }
 
+public class LTDotLayout {
+    public var dotWidth: CGFloat = 10
+    public var dotHeight: CGFloat = 10
+    public var dotMargin: CGFloat = 15.0
+    public var dotImage: UIImage?
+    public var dotSelectImage: UIImage?
+    public var dotColor: UIColor = UIColor.clear
+    public var dotSelectColor: UIColor = UIColor.clear
+    public init() { }
+    public convenience init(dotWidth: CGFloat = 15.0, dotHeight: CGFloat = 10, dotMargin: CGFloat = 15.0, dotImage: UIImage? = nil, dotSelectImage: UIImage? = nil, dotColor: UIColor = UIColor.clear, dotSelectColor: UIColor = UIColor.clear) {
+        self.init()
+        self.dotWidth = dotWidth
+        self.dotHeight = dotHeight
+        self.dotMargin = dotMargin
+        self.dotImage = dotImage
+        self.dotSelectImage = dotSelectImage
+        self.dotColor = dotColor
+        self.dotSelectColor = dotSelectColor
+    }
+}
 
+public class LTPageControlView: UIView {
+    
+    fileprivate var numberOfPages: Int = 0 {
+        didSet {
+            setupSubViews()
+        }
+    }
+    
+    fileprivate var currentDot: Int = 0 {
+        willSet {
+            guard newValue != currentDot else { return }
+            glt_dissmissAnimation(currentIndex: currentDot)
+            glt_showAnimation(willIndex: newValue)
+        }
+    }
+    
+    fileprivate var dotLayout: LTDotLayout = LTDotLayout() {
+        didSet {
+            setupSubViews()
+        }
+    }
+    
+    fileprivate convenience init(frame: CGRect, layout: LTDotLayout) {
+        self.init(frame: frame)
+        setupSubViews()
+    }
 
+    private var dotViews: [UIImageView] = []
+
+    private func setupSubViews() {
+        glt_resetAllSubViews()
+        glt_layoutSubViews()
+    }
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        isUserInteractionEnabled = true
+    }
+    
+    required public init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+extension LTPageControlView {
+    
+    private func glt_layoutSubViews() {
+        var totalWidth: CGFloat = 0.0
+        for index in 0 ..< numberOfPages {
+            let dotView = UIImageView()
+            glt_autoSizeImage(dotView: dotView, index: index)
+            if index == numberOfPages - 1 {
+                totalWidth = dotView.frame.origin.x + dotView.bounds.width
+            }
+            dotView.tag = index + 200
+            glt_createGesture(dotView: dotView)
+            addSubview(dotView)
+            dotViews.append(dotView)
+        }
+        bounds.size.width = totalWidth
+    }
+    
+    private func glt_resetAllSubViews() {
+        for view in subviews { view.removeFromSuperview() }
+        dotViews.removeAll()
+    }
+    
+}
+
+extension LTPageControlView {
+    
+    private func glt_autoSizeImage(dotView: UIImageView, index: Int) {
+        if index == 0 {
+            dotView.backgroundColor = dotLayout.dotSelectColor
+            dotView.image = dotLayout.dotSelectImage
+            glt_dotImage(dotLayout.dotSelectImage, dotView: dotView, index: index)
+        }else {
+            dotView.backgroundColor = dotLayout.dotColor
+            dotView.image = dotLayout.dotImage
+            glt_dotImage(dotLayout.dotImage, dotView: dotView, index: index)
+        }
+    }
+    
+    private func glt_dotImage(_ dotImage: UIImage?, dotView: UIImageView, index: Int) {
+        let imageW = dotImage?.size.width ?? dotLayout.dotWidth
+        let imageH = dotImage?.size.height ?? dotLayout.dotHeight
+        dotView.frame = CGRect(x: (imageW + dotLayout.dotMargin) * CGFloat(index), y: (bounds.height - imageH) / 2.0, width: imageW, height: imageH)
+    }
+    
+    private func glt_createGesture(dotView: UIImageView) {
+        dotView.isUserInteractionEnabled = true
+        let tap = UITapGestureRecognizer(target: self, action: #selector(glt_tapGesture(_:)))
+        dotView.addGestureRecognizer(tap)
+    }
+    
+    @objc private func glt_tapGesture(_ tap: UITapGestureRecognizer) {
+        guard let dotView = tap.view else { return }
+        let index = dotView.tag - 200
+        print("click --> \(index)")
+    }
+    
+    private func glt_showAnimation(willIndex: Int) {
+        UIView.animate(withDuration: 0.34 * 3, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: -24, options: [.curveEaseInOut, .curveLinear], animations: {
+            let dotView = self.dotViews[willIndex]
+            dotView.backgroundColor = self.dotLayout.dotSelectColor
+            dotView.image = self.dotLayout.dotSelectImage
+            dotView.transform = CGAffineTransform(scaleX: 1.4, y: 1.4)
+        }) { (_) in }
+    }
+    
+    private func glt_dissmissAnimation(currentIndex: Int) {
+        UIView.animate(withDuration: 0.5, animations: {
+            let dotView = self.dotViews[currentIndex]
+            dotView.backgroundColor = self.dotLayout.dotColor
+            dotView.image = self.dotLayout.dotImage
+            dotView.transform = CGAffineTransform.identity
+        })
+    }
+}

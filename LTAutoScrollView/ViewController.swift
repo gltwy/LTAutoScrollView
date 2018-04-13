@@ -10,17 +10,18 @@ import UIKit
 
 class ViewController: UIViewController {
 
+    var autoScrollView: LTAutoScrollView!
     override func viewDidLoad() {
         super.viewDidLoad()
         print("viewDidLoad")
         self.automaticallyAdjustsScrollViewInsets = false
-        demo1()
-        demo2()
+//        demo1()
+//        demo2()
         demo3()
-        Deom3()
-        Deom4()
-        Deom5()
-        Deom6()
+//        Deom3()
+//        Deom4()
+//        Deom5()
+//        Deom6()
     }
     
     
@@ -119,8 +120,13 @@ extension ViewController {
         view.addSubview(autoScrollView)
         autoScrollView.glt_timeInterval = 0.5
         autoScrollView.scrollDirection = .horizontal
-        autoScrollView.images = ["cycle_image1","cycle_image2"]
+        autoScrollView.images = ["cycle_image1"]
+        self.autoScrollView = autoScrollView
     }
+    
+//    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+//        autoScrollView.images = ["cycle_image1","cycle_image2"]
+//    }
 }
 
 extension ViewController {
@@ -137,7 +143,7 @@ extension ViewController {
     func demo3() {
         let autoScrollView = LTAutoScrollView(frame: CGRect(x: 0, y: 220, width: view.bounds.width, height: 120))
         view.addSubview(autoScrollView)
-        autoScrollView.autoType = .custom
+        autoScrollView.autoType = .default
         autoScrollView.scrollDirection = .horizontal
         autoScrollView.autoViewHandle = {
             var views = [UIImageView]()
@@ -148,6 +154,13 @@ extension ViewController {
             }
             return views
         }
+        let layout = LTDotLayout(dotImage: UIImage(named: "pageControlDot"), dotSelectImage: UIImage(named: "pageControlCurrentDot"))
+        autoScrollView.dotLayout = layout
+        autoScrollView.images = ["cycle_image1","cycle_image2","cycle_image3"]
+        autoScrollView.imageHandle = {(imageView, imageName) in
+            imageView.image = UIImage(named: imageName)
+        }
+        self.autoScrollView = autoScrollView
     }
 }
 
