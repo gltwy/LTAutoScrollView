@@ -14,7 +14,7 @@
 		607FACE01AFB9204008FA782 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 607FACDE1AFB9204008FA782 /* LaunchScreen.xib */; };
 		607FACEC1AFB9204008FA782 /* Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607FACEB1AFB9204008FA782 /* Tests.swift */; };
 		6863FE2F0BEBF249FC6915AA /* Pods_LTAutoScrollView_Example.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 646DB8DF1D90BF0ABE18317F /* Pods_LTAutoScrollView_Example.framework */; };
-		A9695F7FA9DFE63C3F4EB315 /* Pods_LTAutoScrollView_Tests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C1053299AEC10C3F5A12039A /* Pods_LTAutoScrollView_Tests.framework */; };
+		6A7FC24D2082276F00317D96 /* LTAutoScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6A7FC24C2082276F00317D96 /* LTAutoScrollView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -28,9 +28,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		00620A6F1EEB5756EF854521 /* LTAutoScrollView.podspec */ = {isa = PBXFileReference; includeInIndex = 1; name = LTAutoScrollView.podspec; path = ../LTAutoScrollView.podspec; sourceTree = "<group>"; };
-		16DF268A4827A890B2A30439 /* Pods-LTAutoScrollView_Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LTAutoScrollView_Tests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-LTAutoScrollView_Tests/Pods-LTAutoScrollView_Tests.debug.xcconfig"; sourceTree = "<group>"; };
-		3DACC43C1D7895DA9E0B6A16 /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
+		00620A6F1EEB5756EF854521 /* LTAutoScrollView.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = LTAutoScrollView.podspec; path = ../LTAutoScrollView.podspec; sourceTree = "<group>"; };
+		3DACC43C1D7895DA9E0B6A16 /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
 		607FACD01AFB9204008FA782 /* LTAutoScrollView_Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LTAutoScrollView_Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		607FACD41AFB9204008FA782 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		607FACD51AFB9204008FA782 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -42,8 +41,8 @@
 		607FACEA1AFB9204008FA782 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		607FACEB1AFB9204008FA782 /* Tests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Tests.swift; sourceTree = "<group>"; };
 		646DB8DF1D90BF0ABE18317F /* Pods_LTAutoScrollView_Example.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_LTAutoScrollView_Example.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		ACB05F662C2A1ABB49B5639D /* Pods-LTAutoScrollView_Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LTAutoScrollView_Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-LTAutoScrollView_Tests/Pods-LTAutoScrollView_Tests.release.xcconfig"; sourceTree = "<group>"; };
-		B69D923B6B62E97342FE6FDA /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; name = README.md; path = ../README.md; sourceTree = "<group>"; };
+		6A7FC24C2082276F00317D96 /* LTAutoScrollView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = LTAutoScrollView.swift; path = ../../../LTAutoScrollView/Classes/LTAutoScrollView.swift; sourceTree = "<group>"; };
+		B69D923B6B62E97342FE6FDA /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		C1053299AEC10C3F5A12039A /* Pods_LTAutoScrollView_Tests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_LTAutoScrollView_Tests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D90E5DEDC5B36106FD677463 /* Pods-LTAutoScrollView_Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LTAutoScrollView_Example.debug.xcconfig"; path = "Pods/Target Support Files/Pods-LTAutoScrollView_Example/Pods-LTAutoScrollView_Example.debug.xcconfig"; sourceTree = "<group>"; };
 		F2893165A606F220A66CFB5C /* Pods-LTAutoScrollView_Example.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LTAutoScrollView_Example.release.xcconfig"; path = "Pods/Target Support Files/Pods-LTAutoScrollView_Example/Pods-LTAutoScrollView_Example.release.xcconfig"; sourceTree = "<group>"; };
@@ -62,7 +61,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A9695F7FA9DFE63C3F4EB315 /* Pods_LTAutoScrollView_Tests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -102,6 +100,7 @@
 		607FACD21AFB9204008FA782 /* Example for LTAutoScrollView */ = {
 			isa = PBXGroup;
 			children = (
+				6A7FC2492082266100317D96 /* Lib */,
 				607FACD51AFB9204008FA782 /* AppDelegate.swift */,
 				607FACD71AFB9204008FA782 /* ViewController.swift */,
 				607FACD91AFB9204008FA782 /* Main.storyboard */,
@@ -153,10 +152,16 @@
 			children = (
 				D90E5DEDC5B36106FD677463 /* Pods-LTAutoScrollView_Example.debug.xcconfig */,
 				F2893165A606F220A66CFB5C /* Pods-LTAutoScrollView_Example.release.xcconfig */,
-				16DF268A4827A890B2A30439 /* Pods-LTAutoScrollView_Tests.debug.xcconfig */,
-				ACB05F662C2A1ABB49B5639D /* Pods-LTAutoScrollView_Tests.release.xcconfig */,
 			);
 			name = Pods;
+			sourceTree = "<group>";
+		};
+		6A7FC2492082266100317D96 /* Lib */ = {
+			isa = PBXGroup;
+			children = (
+				6A7FC24C2082276F00317D96 /* LTAutoScrollView.swift */,
+			);
+			path = Lib;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -186,12 +191,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 607FACF21AFB9204008FA782 /* Build configuration list for PBXNativeTarget "LTAutoScrollView_Tests" */;
 			buildPhases = (
-				CF25BD613DBFFB7CA96B34BE /* [CP] Check Pods Manifest.lock */,
 				607FACE11AFB9204008FA782 /* Sources */,
 				607FACE21AFB9204008FA782 /* Frameworks */,
 				607FACE31AFB9204008FA782 /* Resources */,
-				0BD5D61A31F9D926ECBD2DD4 /* [CP] Embed Pods Frameworks */,
-				92A5A892119EDE335E616FDC /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -264,21 +266,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		0BD5D61A31F9D926ECBD2DD4 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-LTAutoScrollView_Tests/Pods-LTAutoScrollView_Tests-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		243A96CE0D12F856D95590E8 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -295,36 +282,6 @@
 			showEnvVarsInLog = 0;
 		};
 		5352C3487E7325BEA5FD0FCE /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
-			showEnvVarsInLog = 0;
-		};
-		92A5A892119EDE335E616FDC /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-LTAutoScrollView_Tests/Pods-LTAutoScrollView_Tests-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		CF25BD613DBFFB7CA96B34BE /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -363,6 +320,7 @@
 			files = (
 				607FACD81AFB9204008FA782 /* ViewController.swift in Sources */,
 				607FACD61AFB9204008FA782 /* AppDelegate.swift in Sources */,
+				6A7FC24D2082276F00317D96 /* LTAutoScrollView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -535,7 +493,6 @@
 		};
 		607FACF31AFB9204008FA782 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 16DF268A4827A890B2A30439 /* Pods-LTAutoScrollView_Tests.debug.xcconfig */;
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
@@ -556,7 +513,6 @@
 		};
 		607FACF41AFB9204008FA782 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = ACB05F662C2A1ABB49B5639D /* Pods-LTAutoScrollView_Tests.release.xcconfig */;
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",

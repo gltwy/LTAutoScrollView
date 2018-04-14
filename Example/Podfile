@@ -1,11 +1,13 @@
 use_frameworks!
 
 target 'LTAutoScrollView_Example' do
-  pod 'LTAutoScrollView', :path => '../'
-
-  target 'LTAutoScrollView_Tests' do
-    inherit! :search_paths
-
     
-  end
+    
+#  pod 'LTAutoScrollView', :path => '../'
+
+#  target 'LTAutoScrollView_Tests' do
+#    inherit! :search_paths
+#
+#
+#  end
 end
