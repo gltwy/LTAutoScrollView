@@ -262,7 +262,7 @@ extension LTAutoScrollView {
     private func setupTimer() {
         destroyTimrer()
         timer = Timer(timeInterval: glt_timeInterval, target: self, selector: #selector(timerUpdate(_:)), userInfo: nil, repeats: true)
-        RunLoop.current.add(timer!, forMode: .defaultRunLoopMode)
+        RunLoop.current.add(timer!, forMode: .commonModes)
     }
     
     private func destroyTimrer() {
@@ -308,7 +308,7 @@ extension LTAutoScrollView: UICollectionViewDelegate, UICollectionViewDataSource
     }
     
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        print(realItemIndex(currentIndex()))
+//        print(realItemIndex(currentIndex()))
     }
     
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -317,13 +317,13 @@ extension LTAutoScrollView: UICollectionViewDelegate, UICollectionViewDataSource
             let realIndex = realItemIndex(index)
             pageControl.currentPage = realIndex
             gltPageControl.currentDot = realIndex
-            print(realIndex)
+//            print(realIndex)
         }
         currentPageIndex = index
     }
     
     public func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
-        print("scrollViewDidEndScrollingAnimation -> ", realItemIndex(currentIndex()))
+//        print("scrollViewDidEndScrollingAnimation -> ", realItemIndex(currentIndex()))
     }
     
     private func realItemIndex(_ targetIndex: Int) -> Int {
@@ -359,15 +359,15 @@ extension LTAutoScrollView: UICollectionViewDelegate, UICollectionViewDataSource
 }
 
 public class LTDotLayout {
-    public var dotWidth: CGFloat = 10
-    public var dotHeight: CGFloat = 10
+    public var dotWidth: CGFloat = 14.999
+    public var dotHeight: CGFloat = 14.999
     public var dotMargin: CGFloat = 15.0
     public var dotImage: UIImage?
     public var dotSelectImage: UIImage?
     public var dotColor: UIColor = UIColor.clear
     public var dotSelectColor: UIColor = UIColor.clear
     public init() { }
-    public convenience init(dotWidth: CGFloat = 15.0, dotHeight: CGFloat = 10, dotMargin: CGFloat = 15.0, dotImage: UIImage? = nil, dotSelectImage: UIImage? = nil, dotColor: UIColor = UIColor.clear, dotSelectColor: UIColor = UIColor.clear) {
+    public convenience init(dotWidth: CGFloat = 14.999, dotHeight: CGFloat = 14.999, dotMargin: CGFloat = 15.0, dotImage: UIImage? = nil, dotSelectImage: UIImage? = nil, dotColor: UIColor = UIColor.clear, dotSelectColor: UIColor = UIColor.clear) {
         self.init()
         self.dotWidth = dotWidth
         self.dotHeight = dotHeight
@@ -463,8 +463,15 @@ extension LTPageControlView {
     }
     
     private func glt_dotImage(_ dotImage: UIImage?, dotView: UIImageView, index: Int) {
-        let imageW = dotImage?.size.width ?? dotLayout.dotWidth
-        let imageH = dotImage?.size.height ?? dotLayout.dotHeight
+        
+        var imageW = dotImage?.size.width ?? dotLayout.dotWidth
+        var imageH = dotImage?.size.height ?? dotLayout.dotHeight
+        if dotLayout.dotWidth != 14.999 {
+            imageW = dotLayout.dotWidth
+        }
+        if dotLayout.dotHeight != 14.999 {
+            imageH = dotLayout.dotHeight
+        }
         dotView.frame = CGRect(x: (imageW + dotLayout.dotMargin) * CGFloat(index), y: (bounds.height - imageH) / 2.0, width: imageW, height: imageH)
     }
     
@@ -475,9 +482,9 @@ extension LTPageControlView {
     }
     
     @objc private func glt_tapGesture(_ tap: UITapGestureRecognizer) {
-        guard let dotView = tap.view else { return }
-        let index = dotView.tag - 200
-        print("click --> \(index)")
+//        guard let dotView = tap.view else { return }
+//        let index = dotView.tag - 200
+//        print("click --> \(index)")
     }
     
     private func glt_showAnimation(willIndex: Int) {
