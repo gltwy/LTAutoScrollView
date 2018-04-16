@@ -11,18 +11,38 @@ To run the example project, clone the repo, and run `pod install` from the Examp
 
 ## Requirements
 
-## Installation
+## Installation with CocoaPods
 
-LTAutoScrollView is available through [CocoaPods](http://cocoapods.org). To install
-it, simply add the following line to your Podfile:
+[CocoaPods](http://cocoapods.org) is a dependency manager for Objective-C, which automates and simplifies the process of using 3rd-party libraries like LTAutoScrollView in your projects.  You can install it with the following command:
+
+```bash
+$ gem install cocoapods
+```
+
+> CocoaPods 0.39.0+ is required to build AFNetworking 3.0.0+.
+
+#### Podfile
+
+To integrate AFNetworking into your Xcode project using CocoaPods, specify it in your `Podfile`:
 
 ```ruby
-pod 'LTAutoScrollView'
+source 'https://github.com/CocoaPods/Specs.git'
+platform :ios, '8.0'
+
+target 'TargetName' do
+pod 'AFNetworking', '~> 3.0'
+end
+```
+
+Then, run the following command:
+
+```bash
+$ pod install
 ```
 
 ## Author
 
-1282990794@qq.com, 1282990794@qq.com
+1282990794@qq.com
 
 ## License
 
