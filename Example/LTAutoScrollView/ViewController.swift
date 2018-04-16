@@ -218,6 +218,7 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         view.addSubview(scrollView)
         view.backgroundColor = UIColor.white
+        self.title = "轮播图"
         
         let lable1 = baseLabel(Y: 34, text: "autoScrollView1")
         scrollView.addSubview(autoScrollView1)
