@@ -19,18 +19,16 @@ To run the example project, clone the repo, and run `pod install` from the Examp
 $ gem install cocoapods
 ```
 
-> CocoaPods 0.39.0+ is required to build AFNetworking 3.0.0+.
-
 #### Podfile
 
-To integrate AFNetworking into your Xcode project using CocoaPods, specify it in your `Podfile`:
+To integrate LTAutoScrollView into your Xcode project using CocoaPods, specify it in your `Podfile`:
 
 ```ruby
 source 'https://github.com/CocoaPods/Specs.git'
 platform :ios, '8.0'
 
 target 'TargetName' do
-pod 'AFNetworking', '~> 3.0'
+pod 'LTAutoScrollView'
 end
 ```
 
@@ -70,6 +68,9 @@ $ pod install
         //设置pageControl View的高度 默认为20
         autoScrollView.gltPageControlHeight = 20;
         
+        // 是否自动轮播 默认true
+        autoScrollView.isAutoScroll = true
+        
         //dot在轮播图的位置 中心 左侧 右侧 默认居中
         autoScrollView.dotDirection = .default
         
@@ -90,13 +91,13 @@ $ pod install
         
         //设置pageControl的位置
         autoScrollView.dotDirection = .right
-        //dot在轮播图的位置 左侧 或 右侧时，距离最屏幕最左边或最最右边的距离
-        autoScrollView.adjustValue = 15.0
-        //pageControl高度调整从而改变pageControl位置
-        autoScrollView.gltPageControlHeight = 25
+        //dot在轮播图的位置 左侧 或 右侧时，距离最屏幕最左边或最最右边的距离，默认0
+        autoScrollView.adjustValue = 15.0
+        //pageControl高度调整从而改变pageControl位置 默认20
+        autoScrollView.gltPageControlHeight = 25
         
-        //设置LTDotLayout
-        let layout = LTDotLayout(dotImage: dotImage, dotSelectImage: dotSelectImage)
+        //设置LTDotLayout，更多dot使用见LTDotLayout属性说明
+        let layout = LTDotLayout(dotImage: dotImage, dotSelectImage: dotSelectImage)
         layout.dotMargin = 10.0
         autoScrollView.dotLayout = layout
 ```
