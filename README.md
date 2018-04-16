@@ -5,11 +5,11 @@
 [![License](https://img.shields.io/cocoapods/l/LTAutoScrollView.svg?style=flat)](http://cocoapods.org/pods/LTAutoScrollView)
 [![Platform](https://img.shields.io/cocoapods/p/LTAutoScrollView.svg?style=flat)](http://cocoapods.org/pods/LTAutoScrollView)
 
+![image](https://github.com/gltwy/LTAutoScrollView/blob/master/gltauto.gif)
+
 ## Example
 
 To run the example project, clone the repo, and run `pod install` from the Example directory first.
-
-## Requirements
 
 ## Installation with CocoaPods
 
