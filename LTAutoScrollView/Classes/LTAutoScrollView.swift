@@ -71,7 +71,7 @@ fileprivate class LTCollectionViewCell: UICollectionViewCell {
             imageView.image = UIImage(named: image)
         }
     }
-
+    
     
     fileprivate lazy var imageView: UIImageView = {
         let imageView = UIImageView(frame: CGRect(x: 0, y: 0, width: bounds.width, height: bounds.height))
@@ -100,19 +100,63 @@ fileprivate class LTCollectionViewCell: UICollectionViewCell {
     }
 }
 
-//MARK: 轮播类型视图是自定义 或者 默认
+//MARK: 轮播类型视图是自定义 或者 默认 以及pageControl是系统样式还是自定义图片
 public enum LTAutoScrollViewType {
     case `default`//默认
     case  custom //自定义
 }
 
+//MARK: dot在轮播图的位置 中心 左侧 右侧
+public enum LTDotDirection {
+    case `default`//默认
+    case left // 左侧
+    case right// 右侧
+}
+
+/*  自定义view的数组回调  */
+public typealias AutoViewHandle = () -> [UIView]
+/*  图片赋值回调  */
+public typealias SetImageHandle = (UIImageView, String) -> Void
+/*  点击事件的回调  */
+public typealias DidSelectItemHandle = (Int) -> Void
+/*  自动滚动到当前索引事件的回调  */
+public typealias AutoDidSelectItemHandle = (Int) -> Void
+/*  PageControl点击事件的回调  */
+public typealias PageControlDidSelectIndexHandle = (Int) -> ()
+
+
 public class LTAutoScrollView: UIView {
     
-    /* -------------  共有方法  ---------------- */
-    public typealias AutoViewHandle = () -> [UIView]
-    public typealias SetImageHandle = (UIImageView, String) -> Void
+    /* -------------  公有方法  ---------------- */
     
-    var imageHandle: SetImageHandle?
+    public override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupSubViews()
+    }
+    
+    public convenience init(frame: CGRect, dotLayout: LTDotLayout) {
+        self.init(frame: frame)
+        gltPageControl.dotLayout = dotLayout
+        setupDotDiretion()
+    }
+    
+    /*  图片赋值回调属性  */
+    public var imageHandle: SetImageHandle?
+    /*  点击事件的回调属性  */
+    public var didSelectItemHandle: DidSelectItemHandle?
+    /*  自动滚动到当前索引事件的属性  */
+    public var autoDidSelectItemHandle: AutoDidSelectItemHandle?
+    /*  PageControl点击事件的回调属性  */
+    public var pageControlDidSelectIndexHandle: PageControlDidSelectIndexHandle?
+    
+    /* 设置自定义视图 */
+    public var autoViewHandle: AutoViewHandle? {
+        didSet {
+            guard let autoViewHandle = autoViewHandle else { autoType = .default; return }
+            autoType = .custom
+            setupAutoViewHandle(autoViewHandle: autoViewHandle)
+        }
+    }
     
     /*如果是默认模式`default`  直接传入images数组即可*/
     public var images: [String]? {
@@ -128,10 +172,10 @@ public class LTAutoScrollView: UIView {
         }
     }
     
-    /* 判断轮播类型是自定义视图custom 还是默认模式`default` */
-    public var autoType: LTAutoScrollViewType = .default {
+    /* 是否自动轮播 */
+    public var isAutoScroll: Bool = true {
         didSet {
-            
+            setupTimer()
         }
     }
     
@@ -146,21 +190,56 @@ public class LTAutoScrollView: UIView {
     public var dotLayout: LTDotLayout = LTDotLayout() {
         didSet {
             gltPageControl.dotLayout = dotLayout
+            setupDotDiretion()
         }
     }
     
-    /* 设置系统pageContoal的熟悉 */
-    public lazy var pageControl: UIPageControl = {
-        let pageControl: UIPageControl = UIPageControl(frame: CGRect(x: 0, y: bounds.height - 20, width: bounds.width, height: 20))
-        pageControl.currentPageIndicatorTintColor = UIColor.red
-        pageControl.pageIndicatorTintColor = UIColor.blue
-        return pageControl
-    }()
-    
-    /* 设置自定义视图 */
-    public var autoViewHandle: AutoViewHandle? {
+    /* dot在轮播图的位置 中心 左侧 右侧 */
+    public var dotDirection: LTDotDirection? {
         didSet {
-            setupAutoViewHandle(autoViewHandle: autoViewHandle)
+            guard let dotDirection = dotDirection else { return }
+            gltPageControl.dotDirection = dotDirection
+        }
+    }
+    
+    
+    /* 是否隐藏pageControl，显示的情况下需要设置dotLayout 默认不设置也为隐藏 */
+    public var isHiddenPageControl: Bool = false {
+        didSet {
+            if isHiddenPageControl {
+                gltPageControl.isHidden = true
+            }
+        }
+    }
+    
+    /* dot在轮播图的位置 左侧 或 右侧时，距离最屏幕最左边或最最右边的距离 */
+    public var adjustValue: CGFloat = 0.0 {
+        didSet {
+            gltPageControl.adjustValue = adjustValue
+        }
+    }
+    
+    /* pageControl高度调整从而改变pageControl位置 */
+    public var gltPageControlHeight: CGFloat = 20.0 {
+        didSet {
+            gltPageControl.frame.origin.y = bounds.height - gltPageControlHeight
+            gltPageControl.frame.size.height = gltPageControlHeight
+            gltPageControl.gltPageControlHeight = gltPageControlHeight
+        }
+    }
+    
+    /* 滚动手势禁用（文字轮播较实用）*/
+    public var isDisableScrollGesture: Bool = false {
+        didSet {
+            guard let gestureRecognizers = collectionView.gestureRecognizers else { return }
+            if isDisableScrollGesture {
+                collectionView.canCancelContentTouches = false
+                for gestrue in gestureRecognizers  {
+                    if gestrue.isKind(of: UIPanGestureRecognizer.self) {
+                        collectionView.removeGestureRecognizer(gestrue)
+                    }
+                }
+            }
         }
     }
     
@@ -169,6 +248,7 @@ public class LTAutoScrollView: UIView {
     private var currentPageIndex: Int = 0
     private var timer: Timer?
     private var totalsCount: Int = 0
+    private var autoType: LTAutoScrollViewType = .default
     
     private lazy var layout: LTFlowLayout = {
         let layout = LTFlowLayout(itemSize: CGSize(width: bounds.width, height: bounds.height))
@@ -185,16 +265,14 @@ public class LTAutoScrollView: UIView {
         let collectionView = LTCollectionView(frame: bounds, collectionViewLayout: layout, delegate: self, dataSource: self)
         return collectionView
     }()
-
-    public override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupSubViews()
-    }
     
     required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
+    deinit {
+        destroyTimrer()
+    }
 }
 
 extension LTAutoScrollView {
@@ -210,9 +288,7 @@ extension LTAutoScrollView {
         }else {
             collectionView.scrollToItem(item: totalsCount / 2, section: 0, at: .left)
         }
-        pageControl.numberOfPages = images.count
-        gltPageControl.numberOfPages = images.count
-        gltPageControl.currentDot = 0
+        setupPageControl()
     }
     
     private func setupAutoViewHandle(autoViewHandle: AutoViewHandle?) {
@@ -228,8 +304,19 @@ extension LTAutoScrollView {
         }else {
             collectionView.scrollToItem(item: totalsCount / 2, section: 0, at: .left)
         }
-        pageControl.numberOfPages = contentViews.count
-        gltPageControl.numberOfPages = contentViews.count
+        setupPageControl()
+    }
+    
+    private func setupPageControl() {
+        let numberOfPages = autoType == .default ? (images?.count ?? 0) : contentViews.count
+        numberOfPages == 1 ? (gltPageControl.isHidden = true) : (gltPageControl.isHidden = false)
+        gltPageControl.numberOfPages = numberOfPages
+        gltPageControl.currentDot = 0
+        setupDotDiretion()
+    }
+    
+    private func setupDotDiretion() {
+        gltPageControl.dotDirection = dotDirection ?? .default
     }
 }
 
@@ -237,10 +324,23 @@ extension LTAutoScrollView {
     private func setupSubViews() {
         LTCollectionViewCell.registerCellWithCollectionView(collectionView)
         addSubview(collectionView)
-//        addSubview(pageControl)
         addSubview(gltPageControl)
         registerNotification()
         setupTimer()
+        setupPageControlDidSelect()
+    }
+    
+    private func setupPageControlDidSelect() {
+        gltPageControl.didSelectIndexHandle = {[weak self] index in
+            guard let `self` = self else { return }
+            let diffIndex = index - self.currentIndex() % ( self.autoType == .default ? (self.images?.count ?? 1) : self.contentViews.count)
+            if self.scrollDirection == .vertical {
+                self.collectionView.scrollToItem(at: IndexPath(item: self.currentIndex() + diffIndex, section: 0), at: .top, animated: true)
+            }else {
+                self.collectionView.scrollToItem(at: IndexPath(item: self.currentIndex() + diffIndex, section: 0), at: .left, animated: true)
+            }
+            self.pageControlDidSelectIndexHandle?(index)
+        }
     }
     
     private func registerNotification() {
@@ -261,6 +361,9 @@ extension LTAutoScrollView {
 extension LTAutoScrollView {
     private func setupTimer() {
         destroyTimrer()
+        if !isAutoScroll {
+            return
+        }
         timer = Timer(timeInterval: glt_timeInterval, target: self, selector: #selector(timerUpdate(_:)), userInfo: nil, repeats: true)
         RunLoop.current.add(timer!, forMode: .commonModes)
     }
@@ -277,6 +380,12 @@ extension LTAutoScrollView {
         }else {
             let point = CGPoint(x: 0, y: CGFloat(currentPageIndex + 1) * bounds.height)
             collectionView.setContentOffset(point, animated: true)
+        }
+    }
+    
+    public override func willMove(toSuperview newSuperview: UIView?) {
+        if newSuperview == nil {
+            destroyTimrer()
         }
     }
 }
@@ -302,28 +411,29 @@ extension LTAutoScrollView: UICollectionViewDelegate, UICollectionViewDataSource
             guard let images = images else { return cell }
             imageHandle?(cell.imageView, images[indexPath.item % (images.count)])
         }else {
+            for subView in cell.contentView.subviews { subView.removeFromSuperview() }
             cell.subView = contentViews[indexPath.item % contentViews.count]
         }
         return cell
     }
     
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-//        print(realItemIndex(currentIndex()))
+        if autoType == .default {
+            guard let images = images else { return }
+            didSelectItemHandle?(indexPath.item % (images.count))
+        }else {
+            didSelectItemHandle?(indexPath.item % contentViews.count)
+        }
     }
     
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let index = currentIndex()
         if currentPageIndex != index {
             let realIndex = realItemIndex(index)
-            pageControl.currentPage = realIndex
             gltPageControl.currentDot = realIndex
-//            print(realIndex)
+            autoDidSelectItemHandle?(realIndex)
         }
         currentPageIndex = index
-    }
-    
-    public func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
-//        print("scrollViewDidEndScrollingAnimation -> ", realItemIndex(currentIndex()))
     }
     
     private func realItemIndex(_ targetIndex: Int) -> Int {
@@ -332,7 +442,7 @@ extension LTAutoScrollView: UICollectionViewDelegate, UICollectionViewDataSource
     }
     
     private func currentIndex() -> Int {
-        if collectionView.frame.width == 0 || collectionView.frame.height == 0 {
+        if layout.itemSize.width == 0 || layout.itemSize.height == 0 {
             return 0
         }
         var index = 0
@@ -347,7 +457,7 @@ extension LTAutoScrollView: UICollectionViewDelegate, UICollectionViewDataSource
     public func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
         timer?.pause()
     }
-   
+    
     public func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         timer?.restart(glt_timeInterval)
     }
@@ -358,16 +468,30 @@ extension LTAutoScrollView: UICollectionViewDelegate, UICollectionViewDataSource
     
 }
 
-public class LTDotLayout {
-    public var dotWidth: CGFloat = 14.999
-    public var dotHeight: CGFloat = 14.999
+private let isPostDotSize: CGFloat = 14.999099
+public class LTDotLayout: NSObject {
+    /* dot单独的一个的宽度 */
+    public var dotWidth: CGFloat = isPostDotSize
+    /* dot单独的一个的高度 */
+    public var dotHeight: CGFloat = isPostDotSize
+    /* dot之间的间距 */
     public var dotMargin: CGFloat = 15.0
+    /* dot未选中的图片 */
     public var dotImage: UIImage?
+    /* dot选中后的图片 */
     public var dotSelectImage: UIImage?
+    /* dot未选中的颜色 */
     public var dotColor: UIColor = UIColor.clear
+    /* dot选中的后颜色 */
     public var dotSelectColor: UIColor = UIColor.clear
-    public init() { }
-    public convenience init(dotWidth: CGFloat = 14.999, dotHeight: CGFloat = 14.999, dotMargin: CGFloat = 15.0, dotImage: UIImage? = nil, dotSelectImage: UIImage? = nil, dotColor: UIColor = UIColor.clear, dotSelectColor: UIColor = UIColor.clear) {
+    /* custom为默认是自定义 ， 想使用类似系统样式传入default */
+    public var dotType: LTAutoScrollViewType = .custom
+    /* 滚动过程是否放大当前dot */
+    public var isScale: Bool = true
+    /* 滚动过程dot放大倍率 */
+    public var scaleXY: CGFloat = 1.4
+    public override init() { super.init() }
+    public convenience init(dotWidth: CGFloat = 14.999099, dotHeight: CGFloat = 14.999099, dotMargin: CGFloat = 15.0, dotImage: UIImage? = nil, dotSelectImage: UIImage? = nil, dotColor: UIColor = UIColor.clear, dotSelectColor: UIColor = UIColor.clear, dotType: LTAutoScrollViewType = .custom, isScale: Bool = true, scaleXY: CGFloat = 1.4) {
         self.init()
         self.dotWidth = dotWidth
         self.dotHeight = dotHeight
@@ -376,10 +500,46 @@ public class LTDotLayout {
         self.dotSelectImage = dotSelectImage
         self.dotColor = dotColor
         self.dotSelectColor = dotSelectColor
+        self.dotType = dotType
+        self.isScale = isScale
+        self.scaleXY = scaleXY
     }
 }
 
-public class LTPageControlView: UIView {
+fileprivate class LTPageControlView: UIView {
+    
+    fileprivate var didSelectIndexHandle: PageControlDidSelectIndexHandle?
+    
+    fileprivate var dotDirection: LTDotDirection = .default {
+        didSet {
+            switch dotDirection {
+            case .left:
+                frame.origin.x = adjustValue
+                break
+            case .right:
+                let parentViewW = self.superview?.bounds.width ?? UIScreen.main.bounds.width
+                frame.origin.x = parentViewW - totalWidth - adjustValue
+                break
+            default:
+                let parentViewW = self.superview?.bounds.width ?? UIScreen.main.bounds.width
+                frame.origin.x = (parentViewW - totalWidth) / 2.0
+            }
+        }
+    }
+    
+    fileprivate var adjustValue: CGFloat = 0.0 {
+        didSet {
+            setupSubViews()
+        }
+    }
+    
+    fileprivate var gltPageControlHeight: CGFloat = 20.0 {
+        didSet {
+            setupSubViews()
+        }
+    }
+    
+    private var totalWidth: CGFloat = 0
     
     fileprivate var numberOfPages: Int = 0 {
         didSet {
@@ -390,8 +550,8 @@ public class LTPageControlView: UIView {
     fileprivate var currentDot: Int = 0 {
         willSet {
             guard newValue != currentDot else { return }
-            glt_dissmissAnimation(currentIndex: currentDot)
-            glt_showAnimation(willIndex: newValue)
+            glt_dissmissAnimation(currentIndex: currentDot, isScale: dotLayout.isScale)
+            glt_showAnimation(willIndex: newValue, isScale: dotLayout.isScale)
         }
     }
     
@@ -405,9 +565,9 @@ public class LTPageControlView: UIView {
         self.init(frame: frame)
         setupSubViews()
     }
-
+    
     private var dotViews: [UIImageView] = []
-
+    
     private func setupSubViews() {
         glt_resetAllSubViews()
         glt_layoutSubViews()
@@ -426,19 +586,19 @@ public class LTPageControlView: UIView {
 extension LTPageControlView {
     
     private func glt_layoutSubViews() {
-        var totalWidth: CGFloat = 0.0
+        totalWidth = 0.0
         for index in 0 ..< numberOfPages {
             let dotView = UIImageView()
             glt_autoSizeImage(dotView: dotView, index: index)
             if index == numberOfPages - 1 {
-                totalWidth = dotView.frame.origin.x + dotView.bounds.width
+                totalWidth = dotView.frame.origin.x + dotView.frame.size.width
             }
             dotView.tag = index + 200
             glt_createGesture(dotView: dotView)
             addSubview(dotView)
             dotViews.append(dotView)
+            bounds.size.width = totalWidth
         }
-        bounds.size.width = totalWidth
     }
     
     private func glt_resetAllSubViews() {
@@ -463,13 +623,19 @@ extension LTPageControlView {
     }
     
     private func glt_dotImage(_ dotImage: UIImage?, dotView: UIImageView, index: Int) {
-        
+        if dotLayout.dotType == .default {
+            dotView.frame = CGRect(x: (dotLayout.dotWidth + dotLayout.dotMargin) * CGFloat(index), y: (bounds.height - dotLayout.dotWidth) / 2.0, width: dotLayout.dotWidth, height: dotLayout.dotWidth)
+            dotView.layer.cornerRadius = dotLayout.dotWidth / 2.0
+            dotView.layer.masksToBounds = true
+            dotView.clipsToBounds = true
+            return
+        }
         var imageW = dotImage?.size.width ?? dotLayout.dotWidth
         var imageH = dotImage?.size.height ?? dotLayout.dotHeight
-        if dotLayout.dotWidth != 14.999 {
+        if dotLayout.dotWidth != isPostDotSize {
             imageW = dotLayout.dotWidth
         }
-        if dotLayout.dotHeight != 14.999 {
+        if dotLayout.dotHeight != isPostDotSize {
             imageH = dotLayout.dotHeight
         }
         dotView.frame = CGRect(x: (imageW + dotLayout.dotMargin) * CGFloat(index), y: (bounds.height - imageH) / 2.0, width: imageW, height: imageH)
@@ -482,26 +648,38 @@ extension LTPageControlView {
     }
     
     @objc private func glt_tapGesture(_ tap: UITapGestureRecognizer) {
-//        guard let dotView = tap.view else { return }
-//        let index = dotView.tag - 200
-//        print("click --> \(index)")
+        guard let dotView = tap.view else { return }
+        let index = dotView.tag - 200
+        didSelectIndexHandle?(index)
     }
     
-    private func glt_showAnimation(willIndex: Int) {
-        UIView.animate(withDuration: 0.34 * 3, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: -24, options: [.curveEaseInOut, .curveLinear], animations: {
-            let dotView = self.dotViews[willIndex]
+    private func glt_showAnimation(willIndex: Int, isScale: Bool) {
+        let dotView = self.dotViews[willIndex]
+        if isScale {
+            UIView.animate(withDuration: 0.34 * 3, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: -24, options: [.curveEaseInOut, .curveLinear], animations: {
+                dotView.backgroundColor = self.dotLayout.dotSelectColor
+                dotView.image = self.dotLayout.dotSelectImage
+                dotView.transform = CGAffineTransform(scaleX: self.dotLayout.scaleXY, y: self.dotLayout.scaleXY)
+            }) { (_) in }
+        }else {
             dotView.backgroundColor = self.dotLayout.dotSelectColor
             dotView.image = self.dotLayout.dotSelectImage
-            dotView.transform = CGAffineTransform(scaleX: 1.4, y: 1.4)
-        }) { (_) in }
+        }
     }
     
-    private func glt_dissmissAnimation(currentIndex: Int) {
-        UIView.animate(withDuration: 0.5, animations: {
-            let dotView = self.dotViews[currentIndex]
+    private func glt_dissmissAnimation(currentIndex: Int, isScale: Bool) {
+        let dotView = self.dotViews[currentIndex]
+        if isScale {
+            UIView.animate(withDuration: 0.5, animations: {
+                dotView.backgroundColor = self.dotLayout.dotColor
+                dotView.image = self.dotLayout.dotImage
+                dotView.transform = CGAffineTransform.identity
+            })
+        }else {
             dotView.backgroundColor = self.dotLayout.dotColor
             dotView.image = self.dotLayout.dotImage
-            dotView.transform = CGAffineTransform.identity
-        })
+        }
     }
+    
 }
+

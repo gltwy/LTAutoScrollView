@@ -1,12 +1,19 @@
 PODS:
   - Kingfisher (4.7.0)
+  - LTAutoScrollView (0.1.0)
 
 DEPENDENCIES:
   - Kingfisher (~> 4.7.0)
+  - LTAutoScrollView (from `../`)
+
+EXTERNAL SOURCES:
+  LTAutoScrollView:
+    :path: "../"
 
 SPEC CHECKSUMS:
   Kingfisher: da6b005aa96d37698e3e4f1ccfe96a5b9bbf27d6
+  LTAutoScrollView: 457e1fb733fd4ba33d36d4dd6e21a07891022c1d
 
-PODFILE CHECKSUM: 4a693a5a5d3c47c74543c6311b2d551583998d35
+PODFILE CHECKSUM: 084a963cfe4e84dec4a03d4df38492d4e14e1424
 
 COCOAPODS: 1.2.0
